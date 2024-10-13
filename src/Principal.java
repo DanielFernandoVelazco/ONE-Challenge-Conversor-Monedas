@@ -1,41 +1,88 @@
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.util.Map;
 
 public class Principal {
-
-    static class ApiResponse {
-        Map<String, Double> conversion_rates;
-    }
 
     public static void main(String[] args) throws IOException, InterruptedException {
 
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        String direccion = System.getenv("API_URL");
 
+        // Instanciamos los servicios
+        ApiService apiService = new ApiService();
+        CurrencyConverter currencyConverter = new CurrencyConverter();
+        MenuService menuService = new MenuService();
 
+        // Obtener respuesta de la API
+        String json = apiService.getApiResponse(direccion);
 
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(direccion))
-                .build();
-
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-        String json = response.body();
-
+        // Deserializar el JSON
         ApiResponse apiResponse = gson.fromJson(json, ApiResponse.class);
-        System.out.println(apiResponse);
 
-        Double tasaUSD = apiResponse.conversion_rates.get("USD");
-        Double tasaAUD = apiResponse.conversion_rates.get("AUD");
+        // Obtener tasas de cambio
+        Double dolarUSD = apiResponse.conversion_rates.get("USD");
+        Double pesoArgentinoARS = apiResponse.conversion_rates.get("ARS");
+        Double realBrasileroBRL = apiResponse.conversion_rates.get("BRL");
+        Double pesoColombianoCOP = apiResponse.conversion_rates.get("COP");
 
-        // Imprimir las tasas de conversión
-        System.out.println("Tasa de USD: " + tasaUSD);
-        System.out.println("Tasa de AUD: " + tasaAUD);
+        while (true) {
+            int opcion = menuService.getOption();
+
+            if (opcion == 7) {
+                System.out.println("Gracias por usar nuestros servicios");
+                break;
+            }
+
+            if (opcion < 1 || opcion > 7) {
+                System.out.println("La opcion debe ser del 1 al 7");
+                break;
+            }
+
+            double valorOriginal = menuService.getAmount();
+            double valorCambio = 0.0;
+            String simboloOriginal = "";
+            String simboloCambio = "";
+
+            switch (opcion) {
+                case 1 -> {
+                    simboloOriginal = " [USD] ";
+                    simboloCambio = " [ARS] ";
+                    valorCambio = currencyConverter.convertCurrency(valorOriginal, dolarUSD, pesoArgentinoARS);
+                }
+                case 2 -> {
+                    simboloOriginal = " [ARS] ";
+                    simboloCambio = " [USD] ";
+                    valorCambio = currencyConverter.convertCurrency(valorOriginal, pesoArgentinoARS, dolarUSD);
+                }
+                case 3 -> {
+                    simboloOriginal = " [USD] ";
+                    simboloCambio = " [BRL] ";
+                    valorCambio = currencyConverter.convertCurrency(valorOriginal, dolarUSD, realBrasileroBRL);
+                }
+                case 4 -> {
+                    simboloOriginal = " [BRL] ";
+                    simboloCambio = " [USD] ";
+                    valorCambio = currencyConverter.convertCurrency(valorOriginal, realBrasileroBRL, dolarUSD);
+                }
+                case 5 -> {
+                    simboloOriginal = " [USD] ";
+                    simboloCambio = " [COP] ";
+                    valorCambio = currencyConverter.convertCurrency(valorOriginal, dolarUSD, pesoColombianoCOP);
+                }
+                case 6 -> {
+                    simboloOriginal = " [COP] ";
+                    simboloCambio = " [USD] ";
+                    valorCambio = currencyConverter.convertCurrency(valorOriginal, pesoColombianoCOP, dolarUSD);
+                }
+            }
+
+            System.out.println("El valor de " +
+                    valorOriginal +
+                    simboloOriginal +
+                    "corresponde al valor final de =>> " +
+                    valorCambio +
+                    simboloCambio);
+        }
     }
 }
