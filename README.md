@@ -35,7 +35,7 @@ Esta es una aplicación en Java que permite convertir entre diferentes monedas (
 
 1. Clona este repositorio en tu máquina local:
    ```bash
-   git clone https://github.com/usuario/conversor-monedas-java.git
+   git clone https://github.com/DanielFernandoVelazco/ONE-Challenge-Conversor-Monedas.git
    ```
 
 2. Asegúrate de tener instalada una versión compatible de Java (17 o superior). Puedes verificar la versión con el siguiente comando:
